@@ -1,3 +1,5 @@
+import eruda from 'eruda';
+eruda.init();
 import * as THREE from 'three';
 
 
@@ -7,6 +9,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
+
+
 
 
 import Stats from 'stats.js';
@@ -53,7 +57,18 @@ const cameraRatio = window.innerWidth / window.innerHeight;
 
 const camera = new THREE.PerspectiveCamera(90, cameraRatio, 0.1, 10)
 
-camera.position.set(0, 3.3, 2.5);
+const landscape = window.innerWidth > window.innerHeight;
+const portrait = window.innerHeight > window.innerWidth;
+
+function startScene () {
+  if (landscape) {
+    camera.position.set(0, 3.3, 2.2);
+  }
+  else{
+    camera.position.set(0, 3.3, 3);
+  }
+}
+startScene();
 
 camera.rotateX(-0.5);
 
@@ -90,7 +105,7 @@ const bloonPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, windo
 effectComposer.addPass(bloonPass);
 
 
-const ambientLight = new THREE.AmbientLight(0xffffff , 2);
+const ambientLight = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambientLight);
 
 
@@ -126,7 +141,7 @@ playerBB.setFromObject(player);
 
 const groundLength = 200;
 
-const groundGeo = new THREE.BoxGeometry(3.5, 1, groundLength);
+const groundGeo = new THREE.BoxGeometry(5, 1, groundLength);
 
 const groundMat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
 
@@ -137,7 +152,7 @@ ground.position.z = -97;
 scene.add(ground);
 
 
-const enemyX = [-1.1, 0, 1.1];
+const enemyX = [-1.5, 0, 1.5];
 
 const enemies = [];
 
@@ -220,15 +235,25 @@ setInterval(() => {
 
 }, 500)
 
-document.body.click = ()=>{
-document.body.requestFullscreen();}
+document.body.click = () => {
+  document.body.requestFullscreen();
+}
 
+window.addEventListener('orientationchange', () => {
+  console.warn('orientation changed')
+  if (landscape) {
+    camera.position.set(0, 3.3, 3);
+    console.log(camera.position)
+  } else {
+    camera.position.set(0, 3.3, 2.5);
+    console.log(camera.position)
+  }
+})
 
 function animate() {
 
   requestAnimationFrame(animate);
 
-  //stats.begin();
 
   if (shouldPlay) {
 
@@ -237,38 +262,59 @@ function animate() {
     camera.position.z -= 0.07;
 
 
-    if (player.position.y > 1)
-      player.position.y -= 0.04;
 
+
+    playerBB.setFromObject(player);
+    checkCollision();
+
+
+    if (player.position.y > 1)
+      player.position.y -= 0.047;
+
+
+    player.rotation.z = ground.rotation.z;
+    enemies.forEach((enemy) => {
+      enemy.rotation.z = ground.rotation.z;
+    });
 
     // ground rotation and camera position based  on player position
 
-    if(player.position.x > 0)
-      { if(camera.position.x < 1)
-      {  camera.position.x += 0.01}
-        
-      if()
+    //ground.rotation.z = -0.2
 
-      
+
+    if (player.position.x > 0) {
+      if (camera.position.x < 1) { camera.position.x += 0.03 }
+      if (ground.rotation.z > -0.2) {
+        ground.rotation.z -= 0.01;
+      }
+    }
+
+
+    if (player.position.x < 0) {
+      if (camera.position.x > -1)
+        camera.position.x -= 0.03
+
+      if (ground.rotation.z < 0.2) {
+        ground.rotation.z += 0.01;
+      }
+    }
+
+    if (player.position.x == 0) {
+      if (camera.position.x > 0) {
+        camera.position.x -= 0.04;
+      }
+      if (camera.position.x < 0) {
+        camera.position.x += 0.02;
+      }
+      if (ground.rotation.z > 0) {
+        ground.rotation.z -= 0.02
+      }
+      if (ground.rotation.z < 0) {
+        ground.rotation.z += 0.02
       }
 
-      
-      if(player.position.x < 0)
-      { if(camera.position.x > -1)
-        camera.position.x -= 0.01
-      }
 
-      if (player.position.x ==0){
-        if (camera.position.x > 0)
-          {
-            camera.position.x -= 0.02;
-          }
-          if (camera.position.x < 0)
-          {
-            camera.position.x += 0.02;
-          }
-
-      }
+    }
 
 
 
@@ -281,15 +327,15 @@ function animate() {
 
   // Update player's bounding box position
 
-  playerBB.setFromObject(player);
 
 
-  checkCollision();
+
+
 
 
   effectComposer.render(scene, camera);
 
-   stats.end();
+  stats.end();
 
 }
 
@@ -316,7 +362,7 @@ function checkCollision() {
       finalScore.innerHTML = score.toString();
 
 
-      
+
 
     }
 
@@ -337,7 +383,13 @@ function restart() {
 
   player.position.set(0, 1, 0);
 
-  camera.position.set(0, 3.3, 2.5);
+  if (landscape) {
+    camera.position.set(0, 3.3, 2.2);
+    console.log(camera.position)
+  } else {
+    camera.position.set(0, 3.3, 2.5);
+    console.log(camera.position)
+  }
   score = 0;
 
   endCard.style.visibility = 'hidden'
@@ -354,7 +406,7 @@ function jump() {
 
   if (player.position.y < 1.7) {
 
-    player.position.y += 2.5;
+    player.position.y += 3;
 
   }
 
@@ -364,8 +416,8 @@ function moveLeft() {
 
   if (player.position.x > -1) {
 
-    player.position.x -= 1.15;
-    
+    player.position.x -= 1.35;
+
   }
 
 }
@@ -375,8 +427,8 @@ function moveRight() {
 
   if (player.position.x < 1) {
 
-    player.position.x += 1.15;
-    
+    player.position.x += 1.35;
+
   }
 
 
@@ -394,7 +446,7 @@ window.onkeydown = (event) => {
 
   var key = event.key;
 
-  console.log(key);
+  //console.log(key);
 
   if (shouldPlay) {
 
@@ -478,3 +530,6 @@ window.addEventListener('resize', () => {
 
 
 
+setInterval(() => {
+  console.log(camera.position)
+}, 2000);
