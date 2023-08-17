@@ -116,6 +116,8 @@ canvas {
   box-shadow: 3px 13px 13px green;
 }
 
+
+/* 
 #left {
   position: absolute;
 
@@ -131,23 +133,28 @@ canvas {
 
   width: 15vw;
 
-  /* outline: 2px solid red; */
-}
+   outline: 2px solid red; 
+  } */
 
-#jumper {
+#swipeArea {
   position: absolute;
 
   bottom: 0;
 
-  height: 90vh;
+  height: 80vh;
 
-  width: 69vw;
+  width: 98vw;
 
-  left: 16%;
+  left: 0;
 
-  /* outline: 2px solid red; */
+  /* outline: 3px solid red; */
 }
 
+
+
+
+
+/* 
 #right {
   position: absolute;
 
@@ -168,8 +175,19 @@ canvas {
   right: 0;
 
   /* outline: 2px solid red; */
-}
+} */
 
 #liveScore {
   color: white;
+}
+
+
+color{
+  color: #a4ff8d;
+}
+
+#playPauseBtn{
+  position: absolute;
+  left: 47%;
+  visibility: hidden;
 }

@@ -1,31 +1,36 @@
-import eruda from 'eruda';
-eruda.init();
+// import eruda from 'eruda';
+// eruda.init();
 import * as THREE from 'three';
+//import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+//import * as Colyseus from 'colyseus.js'
+
+// var client = new Colyseus.Client('ws://localhost:2567');
+// client.joinOrCreate("room_name").then(room => {
+//       console.log(room.sessionId, "joined", room.name);
+//       }).catch(e => {
+//           console.log("JOIN ERROR", e);
+//           });
 
 
 
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
-
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass'
 
 
 
 
-import Stats from 'stats.js';
+// import Stats from 'stats.js';
 
 
 const endCard = document.getElementById('endCard');
+//const modelLoader = new GLTFLoader();
 
 const startBtn = document.getElementById('start');
-
+const playPauseBtn = document.getElementById('playPauseBtn');
 const infoBtn = document.getElementById('info');
 
 //how to play button 
 
 const htpBtn = document.getElementById('htp');
-
+var playPauseAvailable = false;
 
 const leftBtn = document.getElementById('left');
 
@@ -44,33 +49,30 @@ const startMenu = document.getElementById('startMenu');
 
 const restartBtn = document.getElementById('restart');
 
-const stats = new Stats();
-stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-document.body.appendChild(stats.dom);
+// const stats = new Stats();
+// stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+// document.body.appendChild(stats.dom);
 
 
 const scene = new THREE.Scene();
+//scene.background = new THREE.Color(0xaaea9c);
+scene.fog = new THREE.Fog(new THREE.Color(0xa4ff8d), 0 , 10);
+//scene.backgroundIntensity = 0.1;
 
 const cameraRatio = window.innerWidth / window.innerHeight;
 
-// const camera = new THREE.PerspectiveCamera(90, cameraRatio, 0.1, 10);
 
-const camera = new THREE.PerspectiveCamera(90, cameraRatio, 0.1, 10)
 
-const landscape = window.innerWidth > window.innerHeight;
-const portrait = window.innerHeight > window.innerWidth;
+const camera = new THREE.PerspectiveCamera(90, cameraRatio, 0.1, 15000)
 
-function startScene () {
-  if (landscape) {
-    camera.position.set(0, 3.3, 2.2);
-  }
-  else{
-    camera.position.set(0, 3.3, 3);
-  }
-}
-startScene();
 
-camera.rotateX(-0.5);
+
+setTimeout(() => {
+  startScene();
+}, 1000);
+
+
+
 
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -88,37 +90,57 @@ renderer.pixelRatio = window.devicePixelRatio / 3;
 
 renderer.setSize(canvasWidth, canvasHeight, false);
 
-const renderScene = new RenderPass(scene, camera
-);
-
-const effectComposer = new EffectComposer(renderer);
-
-
-
-
-effectComposer.addPass(renderScene)
 
 document.body.appendChild(renderer.domElement);
 
-const bloonPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.7, 2, 0.1);
 
-effectComposer.addPass(bloonPass);
+
+
+var highestJumpAmount;
+function startScene() {
+  console.error('Window Width : ' + window.innerWidth + ' Window Height : ' + window.innerHeight);
+  if (window.innerWidth > window.innerHeight) {
+    camera.position.set(0, player.position.y -1 +  3, player.position.z + 1.7);
+    
+    camera.rotation.x = (-0.7);
+    scene.fog.near = 0;
+    scene.fog.far = 10;
+    highestJumpAmount = 2.2;
+  }
+  else {
+    camera.position.set(0 ,player.position.y -1 + 3.5, player.position.z + 4);
+   
+    camera.rotation.x = (-0.37);
+    scene.fog.near = 1;
+    scene.fog.far = 15;
+    highestJumpAmount = 2.5;
+  }
+  // console.log(camera.position);
+  // console.log(player.position)
+}
+
+
 
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 2);
 scene.add(ambientLight);
 
+const skyboxGeo = new THREE.BoxGeometry(200, 200, 200);
+const skybox = new THREE.Mesh(skyboxGeo, new THREE.MeshStandardMaterial({
+  color: 0xa4ff8d85,
+  side: THREE.BackSide
+}));
+scene.add(skybox);
 
 
 
 
-
-const playerGeo = new THREE.BoxGeometry(1, 1, 1);
+const playerGeo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
 
 const playerMat = [
   new THREE.MeshLambertMaterial({ color: 0x00ff00 }),   // Right side (bright green)
   new THREE.MeshLambertMaterial({ color: 0x008000 }),   // Left side (dark green)
-  new THREE.MeshLambertMaterial({ color: 0xffff00 }),   // Top side (medium green)
+  new THREE.MeshLambertMaterial({ color: 0x00ff00 }),   // Top side (medium green)
   new THREE.MeshLambertMaterial({ color: 0x00cc00 }),   // Bottom side (yellow)
   new THREE.MeshLambertMaterial({ color: 0x00aa00 }),   // Front side (light green)
   new THREE.MeshLambertMaterial({ color: 0x006600 })    // Back side (darker green)
@@ -141,13 +163,13 @@ playerBB.setFromObject(player);
 
 const groundLength = 200;
 
-const groundGeo = new THREE.BoxGeometry(5, 1, groundLength);
+const groundGeo = new THREE.BoxGeometry(5, 1, 250);
 
 const groundMat = new THREE.MeshBasicMaterial({ color: 0x0000ff });
 
 const ground = new THREE.Mesh(groundGeo, groundMat);
 
-ground.position.z = -97;
+ground.position.z = -110;
 
 scene.add(ground);
 
@@ -159,7 +181,7 @@ const enemies = [];
 
 for (let i = 0; i < 100; i++) {
 
-  const enemyGeo = new THREE.BoxGeometry();
+  const enemyGeo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
 
   const enemyMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
@@ -207,13 +229,13 @@ for (let i = 0; i < 100; i++) {
 // console.log(enemies)
 
 
-
+let score = 0;
 var shouldPlay = false;
 
 function start() {
 
   shouldPlay = true;
-
+  playPauseBtn.style.visibility = 'visible';
   startMenu.style.visibility = 'hidden';
 
 }
@@ -223,7 +245,7 @@ startBtn.addEventListener('click', start);
 
 
 
-let score = 0;
+
 
 setInterval(() => {
 
@@ -233,21 +255,19 @@ setInterval(() => {
 
   scoreOnPage.innerHTML = score.toString() + ' m'
 
-}, 500)
+}, 200)
 
 document.body.click = () => {
   document.body.requestFullscreen();
 }
 
 window.addEventListener('orientationchange', () => {
-  console.warn('orientation changed')
-  if (landscape) {
-    camera.position.set(0, 3.3, 3);
-    console.log(camera.position)
-  } else {
-    camera.position.set(0, 3.3, 2.5);
-    console.log(camera.position)
-  }
+
+  console.warn('orientation changed' + ' inner width is : ' + window.innerWidth + ' inner height is : ' + window.innerHeight)
+  setTimeout(() => {
+    startScene();
+    console.log(camera.position);
+  }, 1000);
 })
 
 function animate() {
@@ -257,9 +277,9 @@ function animate() {
 
   if (shouldPlay) {
 
-    player.position.z -= 0.07;
-
-    camera.position.z -= 0.07;
+    player.position.z -= 0.1;
+    skybox.position.z -= 0.1;
+    camera.position.z -= 0.1;
 
 
 
@@ -269,7 +289,7 @@ function animate() {
 
 
     if (player.position.y > 1)
-      player.position.y -= 0.047;
+      player.position.y -= 0.07;
 
 
     player.rotation.z = ground.rotation.z;
@@ -333,9 +353,9 @@ function animate() {
 
 
 
-  effectComposer.render(scene, camera);
-
-  stats.end();
+  //effectComposer.render(scene, camera);
+  renderer.render(scene , camera);
+  // stats.end();
 
 }
 
@@ -356,11 +376,11 @@ function checkCollision() {
       //console.error('Collision with enemy!');
 
       endCard.style.visibility = "visible";
-
+      playPauseBtn.style.visibility = 'hidden';
       shouldPlay = false;
 
       finalScore.innerHTML = score.toString();
-
+      playPauseAvailable = false;
 
 
 
@@ -382,31 +402,33 @@ animate();
 function restart() {
 
   player.position.set(0, 1, 0);
-
-  if (landscape) {
-    camera.position.set(0, 3.3, 2.2);
-    console.log(camera.position)
-  } else {
-    camera.position.set(0, 3.3, 2.5);
-    console.log(camera.position)
-  }
-  score = 0;
+  skybox.position.set(0 , 0 , -90);
+  playPauseBtn.style.visibility = 'visible';
+  startScene();
+  
 
   endCard.style.visibility = 'hidden'
 
   startMenu.style.visibility = 'visible';
-
+   score = 0;
 }
 
 
 restartBtn.addEventListener('click', restart)
 
 
+
+
+
+// player controls
+// player controls
+// player controls
+
 function jump() {
 
   if (player.position.y < 1.7) {
 
-    player.position.y += 3;
+    player.position.y += highestJumpAmount;
 
   }
 
@@ -433,13 +455,14 @@ function moveRight() {
 
 
 }
+var shouldPlayPauseAvailable = false;
 
 
-leftBtn.addEventListener('click', moveLeft);
+// leftBtn.addEventListener('click', moveLeft);
 
-rightBtn.addEventListener('click', moveRight);
+// rightBtn.addEventListener('click', moveRight);
 
-jumperBtn.addEventListener('click', jump)
+// jumperBtn.addEventListener('click', jump)
 
 
 window.onkeydown = (event) => {
@@ -479,19 +502,21 @@ window.onkeydown = (event) => {
 
   if (key === 'Enter' || key == '5') {
 
-    console.log('enter pressed');
+    //console.log('enter pressed');
 
     if (endCard.style.visibility != 'hidden') {
 
       restart();
+      playPauseBtn.style.visibility = 'visible';
     }
 
 
     if (startMenu.style.visibility == 'visible') {
 
       start();
-
+      playPauseBtn.style.visibility = 'visible';
     }
+
 
   }
 
@@ -499,6 +524,21 @@ window.onkeydown = (event) => {
 
 
 
+playPauseBtn.addEventListener('click', (e) => {
+  console.log(player.position);
+  if (shouldPlay === false) {
+    shouldPlay = true;
+    playPauseBtn.innerText = 'Pause';
+    return;
+  }
+
+  if (shouldPlay) {
+    shouldPlay = false;
+    playPauseBtn.innerText = "Play";
+    return;
+  }
+  console.log(shouldPlay);
+});
 
 
 
@@ -530,6 +570,107 @@ window.addEventListener('resize', () => {
 
 
 
+// setInterval(() => {
+//   console.log(camera.position)
+// }, 2000);
+
+
+
+
+
+// adding side buildings 
+
+
+function sideBuildingFirstRow() {
+  const noOfInstace = 600;
+  const sideBuilding = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial({ color: 0x576563 }), noOfInstace);
+  scene.add(sideBuilding);
+  const justToApplyMatrixToSideBuildings = new THREE.Object3D();
+  const sideBuildingX = [2.9, -2.9];
+  const sideBuildingY = [-1.2, -1.7, -2]
+  var sideBuildingInitialZ = -12;
+  // first left and right row
+  for (let index = 0; index < noOfInstace; index++) {
+    sideBuildingInitialZ+= 1.3;
+    justToApplyMatrixToSideBuildings.position.set(sideBuildingX[Math.floor(Math.random() * sideBuildingX.length)], sideBuildingY[Math.floor(Math.random() * sideBuildingY.length)], -sideBuildingInitialZ);
+    justToApplyMatrixToSideBuildings.scale.y = 7;
+    justToApplyMatrixToSideBuildings.updateMatrix();
+    sideBuilding.setMatrixAt(index, justToApplyMatrixToSideBuildings.matrix);
+  }
+}
+sideBuildingFirstRow();
+
+function sideBuildingSecondRow() {
+  const noOfInstace = 600;
+  const sideBuilding = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial({ color: 0x576563 }), noOfInstace);
+  scene.add(sideBuilding);
+  const justToApplyMatrixToSideBuildings = new THREE.Object3D();
+  const sideBuildingX = [4.2, -4.2];
+  const sideBuildingY = [-0.3, -0.6, -1]
+  var sideBuildingInitialZ = -12;
+  // first left and right row
+  for (let index = 0; index < noOfInstace; index++) {
+    sideBuildingInitialZ += 1.3;
+    justToApplyMatrixToSideBuildings.position.set(sideBuildingX[Math.floor(Math.random() * sideBuildingX.length)], sideBuildingY[Math.floor(Math.random() * sideBuildingY.length)], -sideBuildingInitialZ);
+    justToApplyMatrixToSideBuildings.scale.y = 7;
+    justToApplyMatrixToSideBuildings.updateMatrix();
+    sideBuilding.setMatrixAt(index, justToApplyMatrixToSideBuildings.matrix);
+  }
+}
+sideBuildingSecondRow();
+
+function sideBuildingThirdRow() {
+  const noOfInstace = 600;
+  const sideBuilding = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshStandardMaterial({ color: 0x576563 }), noOfInstace);
+  scene.add(sideBuilding);
+  const justToApplyMatrixToSideBuildings = new THREE.Object3D();
+  const sideBuildingX = [5.4, -4.2];
+  const sideBuildingY = [-0.3, -0.6, -1]
+  var sideBuildingInitialZ = -12;
+  // first left and right row
+  for (let index = 0; index < noOfInstace; index++) {
+    sideBuildingInitialZ += 1.3;
+    justToApplyMatrixToSideBuildings.position.set(sideBuildingX[Math.floor(Math.random() * sideBuildingX.length)], sideBuildingY[Math.floor(Math.random() * sideBuildingY.length)], -sideBuildingInitialZ);
+    justToApplyMatrixToSideBuildings.scale.y = 7;
+    justToApplyMatrixToSideBuildings.updateMatrix();
+    sideBuilding.setMatrixAt(index, justToApplyMatrixToSideBuildings.matrix);
+  }
+}
+sideBuildingThirdRow();
+
+
+
+
+
+
+// modelLoader.load('scene.glb' , (gltf)=>{
+//   console.log(gltf);
+//   const sideBuildingModel = gltf.scene;
+//   const sideBuilding = new THREE.InstancedMesh(sideBuildingModel  , new THREE.MeshStandardMaterial() , 3);
+//   sideBuildingModel.position.x = 6.6;
+//   const instancedModel = new THREE.InstancedMesh(sideBuildingModel.children[0].geometry , sideBuilding.children[0].material , 20);
+//   scene.add(instancedModel);
+//   scene.add(sideBuildingModel);
+// })
+
+
 setInterval(() => {
-  console.log(camera.position)
-}, 2000);
+  if(player.position.z < -200){
+    player.position.z = 7;
+    skybox.position.z = -50;
+    startScene()
+  }
+}, 1000);
+
+
+
+
+export {
+  player,
+  moveLeft,
+  moveRight,
+  jump
+};
+
+
+document.body.addEventListener('click' , ()=>{document.body.requestFullscreen();})
