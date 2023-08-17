@@ -16,12 +16,17 @@
     />
 
     <title>Vite + TS</title>
-    <script type="module" crossorigin src="assets/index-cf09166f.js"></script>
-    <link rel="stylesheet" href="assets/index-5f77f996.css">
+    <script type="module" crossorigin src="/assets/index-6c5d0062.js"></script>
+    <link rel="stylesheet" href="/assets/index-dabbdf9f.css">
   </head>
 
   <body>
-   
+    <script src="node_modules/eruda/eruda.js"></script>
+
+    <script>
+      eruda.init();
+    </script>
+
     <h2 id="liveScore">Score : <span id="score">0</span></h2>
     <h2 id="playPauseBtn">Pause</h2>
     <div class="startMenu" id="startMenu">
@@ -38,12 +43,13 @@
       <button id="restart">Restart</button>
     </div>
 
-    <div id="right">➡️</div>
+    
 
-    <div id="jumper"></div>
+    <div id="swipeArea"></div>
 
-    <div id="left">⬅️</div>
+   
 
+    
     
   </body>
 </html>
